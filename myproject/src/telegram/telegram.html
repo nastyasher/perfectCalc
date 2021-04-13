@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Авторизация Telegram</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="MobileOptimized" content="176" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500" rel="stylesheet" type="text/css">
+    <link href="https://telegram.org/css/bootstrap.min.css?3" rel="stylesheet">
+    <link href="https://telegram.org/css/bootstrap-extra.css?2" rel="stylesheet">
+    <link href="https://telegram.org/css/telegram.css?207" rel="stylesheet">
+    <link href="/css/oauth.css?14" rel="stylesheet">
+
+</head>
+<body class="">
+<main class="login">
+    <div class="logout_wrap">
+        <a href class="logout_button" onclick="return logout()">Выйти</a>
+    </div>
+    <section class="login_content login_content_request">
+        <div class="login_photos login_photos_large">
+            <span class="login_user_photo_wrap arrowed"><i class="login_user_photo bgcolor4" data-content="А"><img src="https://cdn4.telesco.pe/file/KCCwlSwlJov_2-2EWwJ4jXFMAQjbAWvk9WihrFzln7JJv1na6lnL4cRSPViIol0oUywAovfB0n8dScrHqA7R3IUaFOcMQUV04ZlD5oVNw_9bcfnFQMnLqtWEUHCeFk4DDIGLyYi0XQVpgwfhVWoaOh1DYdE9HphCmeWcPpGdJofPn36ysXgzsAU2PXYuSCoCPdD_cgkOMu8qYSBaysBBwoDe47ANK4IVTLCjdKXMeMAppy5YT7gWtejTBzEHgos4oUIhm9zaesgJYe9bW_INLd_8Xiv6cTgKpdJyHyR9a-h2aYapwNC7k5AQpbIq_tJkAF3pirtLT7qKRGaNfZA4mQ.jpg"></i></span><a href="https://t.me/SampleBot" target="_blank"><i class="login_bot_photo bgcolor2" data-content="S"></i></a>
+        </div>
+        <div class="login_header_text"><span dir="auto">core.telegram.org</span> запрашивает доступ через <a class="bot_name" dir="auto" href="https://t.me/SampleBot" target="_blank">SampleBot</a></div>
+        <div class="login_confirm_text">Сайту будут известны Ваши <b>имя</b>, <b>публичная ссылка</b> и <b>фотография</b>.</div>
+        <div class="login_confirm_text">Вы вошли как <b>Анастасия Сергеевна</b>.</div>
+        <div class="login_confirm_form_group">
+            <label class="checkbox-item">
+                <input type="checkbox" class="checkbox" id="request_write" value="1" checked />
+                <span class="checkbox-input ripple-handler"><span class="ripple-mask"><span class="ripple"></span></span><span class="checkbox-input-icon"></span></span><span class="checkbox-label">Разрешить <a class="bot_name" dir="auto" href="https://t.me/SampleBot" target="_blank">SampleBot</a> писать Вам в Telegram</span>
+            </label>
+        </div>
+        <div class="login_button_wrap">
+            <button class="button-item button-item-flat ripple-handler" onclick="return declineRequest()" type="button">
+                <span class="button-item-label">Отклонить</span>
+                <span class="ripple-mask"><span class="ripple"></span></span>
+            </button><!--
+   --><button class="button-item ripple-handler" onclick="return confirmRequest()" type="button">
+            <span class="button-item-label">Принять</span>
+            <span class="ripple-mask"><span class="ripple"></span></span>
+        </button>
+        </div>
+    </section>
+</main>
+<script src="/js/oauth.js?16"></script>
+
+<script>function confirmRequest() {
+    var confirm_url = '/auth/auth?bot_id=547043436&origin=https%3A%2F%2Fcore.telegram.org&embed=1&request_access=write&confirm=1&hash=fd994413065cec286a', el;
+    if ((el = getEl('request_write')) && el.checked) {
+        confirm_url += '&allow_write=1';
+    }
+    location.href = confirm_url;
+}
+function declineRequest() {
+    window.close();
+}
+function logout() {
+    location.href = '/auth/logout?bot_id=547043436&origin=https%3A%2F%2Fcore.telegram.org&embed=1&request_access=write&hash=48d088f87ebc918f9b';
+    return false;
+}
+initRipple();
+</script>
+</body>
+</html>
+<!-- page generated in 27.42ms -->
