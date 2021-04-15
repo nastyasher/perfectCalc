@@ -4,8 +4,6 @@ const {DB_DB, DB_USER, DB_HOST, DB_PASSWORD} = process.env
 const fs = require('fs')
 const sequelize = new Sequelize(DB_DB, DB_USER, DB_PASSWORD, {host: DB_HOST, dialect: 'mysql'});
 const bcrypt = require( 'bcrypt' );
-const express_graphql = require('express-graphql').graphqlHTTP;
-const {buildSchema} = require('graphql');
 const bodyParser = require('body-parser')
 const express = require('express');
 const app = express()
@@ -16,84 +14,22 @@ const jwt_decode = require('jwt-decode')
 app.use(express.static('public'))
 app.use(cors())
 app.use(bodyParser.json())
-const schema = buildSchema(`
-    type Query {
-        getUsers:[User]
-        getUser(id:ID):User
-        searchProducts(title:String):[Product]
-        getMealProduct:[MealProduct]
+
+app.get("/search", async (req, res, next) => {
+    const text = req.query.text
+    try {
+        const searchProduct = await Product.findAll({
+            where: {
+                title: {[Op.like]: `%${text}%`}
+            },
+            limit: 15
+        })
+        res.status(200).send(JSON.stringify(searchProduct))
     }
-     type Mutation {
-        register(username: String!, password: String!):User
-     }
-     type User {
-        id: ID
-        username: String
-        weight: String
-        height: String
-        age: String
-     }
-     
-     type Meal {
-        id: ID
-        title: String
-        totalCalories: Int
-        totalProteins: Int
-        totalFats: Int
-        totalCarbohydrates: Int
-        user: User 
-     }
-     
-     type MealProduct {
-        id: ID
-        meal: Meal
-        product: Product
-        quantity: Int
-     }
-
-     type Product {
-        id: ID
-        title: String
-        proteins: Int
-        fats: Int
-        carbohydrates: Int
-        calories: Int
-     }
-`)
-
-const rootResolver = {
-    async register({username, password}) {
-        return await User.create({username, password});
-    },
-    async getUsers() {
-        return await User.findAll({})
-    },
-    async getUser({id}) {
-        return await User.findByPk(id)
-    },
-    async getMeal() {
-        return await Meal.findAll({})
-    },
-    async getMealProduct() {
-        return await MealProduct.findAll({})
-    },
-    async searchProducts({title}) {
-        //console.log(title)
-        return await Product.findAll({where: {
-                title: {[Op.like]: `%${title}%`}
-            },})
-    },
-}
-
-
-
-app.use('/graphql', express_graphql({
-    schema,
-    rootValue: rootResolver,
-    graphiql: true
-}));
-
-
+    catch (e) {
+        next(e)
+    }
+})
 
 app.post("/meal", async (req, res, next) => {
     const products = req.body.products
@@ -102,6 +38,7 @@ app.post("/meal", async (req, res, next) => {
         const newMeal = await Meal.create(
             {
                 title: req.body.title,
+                date: req.body.date,
                 userId: user.id,
                 mealProducts: products.map(product => ({
                     quantity: product.quantity,
@@ -171,6 +108,29 @@ app.post("/register", async (req, res, next) => {
         next(err)
     }
 })
+
+app.get('/history', async (req, res) => {
+    const user = jwt_decode(req.headers.authorization)
+    const dateTo = new Date(req.query.date)
+    dateTo.setDate(dateTo.getDate() + 1);
+    res.send(
+        await Meal.findAll({
+            where: {
+                userId: user.id,
+                date: {
+                    [Op.gte]: req.query.date,
+                    [Op.lt]: dateTo.toISOString().slice(0, 10)
+                }
+            },
+            order: [['date', 'ASC']],
+            include: [
+                {
+                    model: MealProduct,
+                    include: [{model: Product}]
+                }
+            ]
+        })
+    )})
 
 app.use(function(err, req, res, next) {
     if (err instanceof ValidationError) {
@@ -255,6 +215,7 @@ class Meal extends Model {
 
 Meal.init({
     title: notNullColumn(DataTypes.STRING),
+    date: notNullColumn(DataTypes.DATE),
     totalCalories: notNullColumn(DataTypes.DECIMAL(8, 2)),
     totalProteins: notNullColumn(DataTypes.DECIMAL(8, 2)),
     totalFats: notNullColumn(DataTypes.DECIMAL(8, 2)),
@@ -283,7 +244,7 @@ MealProduct.init({
         validate: {
             notNull: {args: true, msg: "Вы должны ввести количество продукта"},
             min: {args: 1, msg: "Введите корректное количество"},
-            max: {args: 1000, msg: "Введите корректное количество"},
+            max: {args: 10000, msg: "Введите корректное количество"},
         }
     }
 }, {sequelize, modelName: 'mealProduct'});
@@ -329,7 +290,7 @@ Product.init({
 
 User.hasMany(Meal, { foreignKey: { allowNull: false }, onDelete: 'CASCADE' })
 Meal.MealProducts = Meal.hasMany(MealProduct, { foreignKey: { allowNull: false }, onDelete: 'CASCADE' })
-MealProduct.Meal = MealProduct.belongsTo(Product, { foreignKey: { allowNull: false }, onDelete: 'CASCADE' })
+MealProduct.Product = MealProduct.belongsTo(Product, { foreignKey: { allowNull: false }, onDelete: 'CASCADE' })
 Product.hasMany(MealProduct, { foreignKey: { allowNull: false }, onDelete: 'CASCADE' })
 
 // console.log( Meal.prototype)

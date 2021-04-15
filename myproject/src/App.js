@@ -1,7 +1,5 @@
-import React, {useState, useReducer, useEffect} from 'react';
-import logo from '../src/favicon.ico';
+import React, {useState} from 'react';
 import './App.css';
-
 import {BrowserRouter as Router, Route, Redirect, Link, withRouter} from 'react-router-dom';
 import {createBrowserHistory as createHistory} from 'history'
 import ReactDOM from 'react-dom';
@@ -13,28 +11,26 @@ import {
     actionAddProduct,
     actionRemoveProduct,
     actionSetQuantity,
-    actionCreateMeal,
+    actionAddNewMeal,
+    actionSetMealTitleAndDate,
+    actionAddHistory
 } from "./action";
-
 import thunk from "redux-thunk";
-import {Table} from 'react-bootstrap';
-import {Button} from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {GraphQLClient} from "graphql-request";
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
-import $ from 'jquery';
-import Popper from 'popper.js';
 import 'bootstrap/dist/js/bootstrap.js';
 import {LoginForm} from "./login/forma"
-import {CNewProduct, NewProduct} from "./newProduct/productForm"
+import {CNewProduct} from "./newProduct/productForm"
 import {reducerAuth} from "./login/reducerAuth"
 import {reducerMain} from "./reducers/index"
 import {actionRegister, actionLogin, actionLogOut} from "./login/action";
 import storage from 'redux-persist/lib/storage'
-import {persistReducer, persistStore} from "redux-persist";
+import {persistReducer, persistStore} from "redux-persist"
 import { PersistGate } from 'redux-persist/integration/react'
-
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+ import {CHistory} from "./historyMeal/historyForm";
 
 ReactDOM.render(
     <div>
@@ -44,8 +40,7 @@ ReactDOM.render(
 
     , document.getElementById('root'));
 
-const SearchProduct = withRouter (({actionAddProduct, actionSearch, products, newMeal=[]}) => {
-    // console.log(products)
+const SearchProduct = withRouter (({actionAddProduct, actionSearch, products}) => {
     return (
         <div className="search-product">
             <div className="search-add ">
@@ -55,7 +50,6 @@ const SearchProduct = withRouter (({actionAddProduct, actionSearch, products, ne
             <div style={{display: products.length > 0 ? "" : "none", color:"white"}} id="search_box-result">Результат поиска<br/>
                 <TableSearch onAdd={actionAddProduct}
                              products={products}/></div>
-
         </div>
     )
 })
@@ -63,12 +57,18 @@ const CSearchProducts = connect(
     state => ({products: state.storeMain.searchProducts || [], newMeal: state.storeMain.newMeal}),
     {actionAddProduct, actionSearch}
 )(SearchProduct)
-const NewMeal = withRouter (({ history, newMeal, actionCreateMeal, actionLogOut, login}) => {
+
+const NewMeal = withRouter (({ history, actionSetMealTitleAndDate, title, actionAddHistory, authToken, actionLogOut, login}) => {
     const meals = ["Завтрак", "Обед", "Ужин", "Перекус"]
+    const [date, setDate] = useState(new Date());
     return (
         <div>
             <div className="page-header">
-                <div className="log-out">
+                <div className="history-log-out">
+                    <button className="button-log-out btn btn-outline-success text-white" onClick={async () => {
+                        await actionAddHistory(authToken, date)
+                        history.push("./history")
+                    }}>История</button>
                     <button className="button-log-out btn btn-outline-success text-white" onClick={() => {
                         actionLogOut()
                         history.push("./login")
@@ -79,23 +79,31 @@ const NewMeal = withRouter (({ history, newMeal, actionCreateMeal, actionLogOut,
             <div className="new-meal btn-group">
                 <button type="button" className="btn btn-success dropdown-toggle" data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
-                    {newMeal || "Выбрать прием пищи"}
+                    {title || "Выбрать прием пищи"}
                 </button>
                 <div className="dropdown-menu">
-                    {meals.map((meal, i) => <div onClick={() => {
-                        actionCreateMeal(meal)
-                    }} key={i} className="dropdown-item"
-                                               href="#">{meal}</div>)}
+                    {meals.map((meal, i) => <div onClick={() => {actionSetMealTitleAndDate({title:meal, date:date})
+                    }} key={i} className="dropdown-item">{meal}</div>)}
+                </div>
+            </div>
+            <div className="btn-group">
+                <button type="button" className="btn btn-success dropdown-toggle" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                    {new Intl.DateTimeFormat().format(date) || "Выбрать дату"}
+                </button>
+                <div className="dropdown-menu">
+                    <DatePicker selected={date} onChange={date => {
+                        setDate(date)
+                        console.log('http://localhost:4000/history'+ date.toISOString())
+                        actionSetMealTitleAndDate({title:title, date:date})
+                    }} />
                 </div>
             </div>
             <CSearchProducts/>
             <CMealProducts/>
         </div>
-
     )
-
 })
-
 
 const RowSearch = ({title, calories, proteins, fats, carbohydrates, onAdd}) =>
     <tr onClick={onAdd}>
@@ -108,7 +116,6 @@ const RowSearch = ({title, calories, proteins, fats, carbohydrates, onAdd}) =>
             <input type="checkbox" />
         </td>
     </tr>
-
 
 const TableSearch = ({products, onAdd}) => {
     console.log(products)
@@ -161,8 +168,7 @@ const SumMeal = ({products}) => {
         </tfoot>
     )
 }
-const TableMeal = ({onRemove, actionSetQuantity, products = [], newMeal, authToken}) => {
-    console.log(products, newMeal)
+const TableMeal = withRouter (({onRemove, actionSetQuantity, history, actionAddNewMeal, products = [], newMeal, date, authToken}) => {
     return (
         <div style={{display: products.length > 0 ? "" : "none", color:"white"}}> Дневник питания
             <table className="text-white table-responsive-md table-dark table table-bordered table-striped table-hover">
@@ -183,11 +189,11 @@ const TableMeal = ({onRemove, actionSetQuantity, products = [], newMeal, authTok
                 </tbody>
                 <SumMeal products={products}/>
             </table>
-            <button onClick={() => postNewMeal(newMeal, products, authToken)} type="button" className="btn btn-success">Сохранить
+            <button onClick={() => {actionAddNewMeal(newMeal, products, authToken, history, newMeal.date)}} type="button" className="btn btn-success">Сохранить
             </button>
         </div>
     )
-}
+})
 const RowMeal = ({title, id, calories, proteins, fats, carbohydrates, quantity, actionSetQuantity, onRemove}) =>
     <tr>
         <td>{title}</td>
@@ -199,29 +205,27 @@ const RowMeal = ({title, id, calories, proteins, fats, carbohydrates, quantity, 
         <td>
             <button onClick={() => onRemove(id)}>x</button>
         </td>
-
     </tr>
 
-const MealProducts = ({onRemove, products, actionSetQuantity, newMeal, authToken}) => {
+const MealProducts = ({onRemove, products, actionAddNewMeal, actionSetQuantity, newMeal, authToken}) => {
+
     return (
         <div>
+
             <div id="meal_box-result"><TableMeal authToken={authToken} newMeal={newMeal} onRemove={onRemove}
-                                                 actionSetQuantity={actionSetQuantity} products={products}/></div>
+                                                 actionAddNewMeal={actionAddNewMeal} actionSetQuantity={actionSetQuantity} products={products}/></div>
         </div>
     )
 }
 
-
-
-
 const CMealProducts = connect(
     state => ({products: state.storeMain.mealProducts, newMeal: state.storeMain.newMeal, authToken: state.storeLog.user.authToken}),
-    {onRemove: actionRemoveProduct, actionSetQuantity}
+    {onRemove: actionRemoveProduct, actionSetQuantity, actionAddNewMeal}
 )(MealProducts)
 
 const CNewMeal = connect(
-    state => ({newMeal: state.storeMain.newMeal, login: state.storeLog.user.username}),
-    {actionCreateMeal, actionLogOut}
+    state => ({newMeal: state.storeMain.newMeal, title: state.storeMain.newMeal.title, date: state.storeMain.newMeal.date, login: state.storeLog.user.username, authToken: state.storeLog.user.authToken}),
+    {actionAddNewMeal, actionSetMealTitleAndDate, actionLogOut, actionAddHistory}
 )(NewMeal)
 
 const CUser = connect(
@@ -233,39 +237,22 @@ const RootComponent = () =>
     <Router history = {createHistory()}>
         <div>
             <Route path="/meal" component = {CNewMeal} />
-            {/*<Route path="/search" component = {CSearchProducts} />*/}
             <Route path="/mealProducts" component = {CMealProducts} />
             <Route path="/login" component = {CUser} />
             <Route path="/product" component = {CNewProduct} />
+            <Route path="/history" component = {CHistory} />
             <Redirect from="/" to={store.getState().storeLog.user.isAuthenticated ? '/meal' : '/login'} />
             <Redirect from="/login" to={store.getState().storeLog.user.isAuthenticated ? '/meal' : '/login'} />
         </div>
     </Router>
 
-async function postNewMeal(newMeal, products, authToken) {
-    const response = await fetch('http://localhost:4000/meal', {
-        method: 'POST',
-        headers: {
-            "Content-type": "application/json",
-            "accept": "application/json"
-        },
-        body: JSON.stringify({
-            title: newMeal,
-            products: products,
-            token: authToken
-        })
-    })
-
-    console.log(await response.json())
-    return true;
-}
 
 const persistConfig = {
     key: 'root',
     storage,
 }
 const persistedReducerAuth = persistReducer(persistConfig, reducerAuth)
-const reducers = combineReducers({ //создаем функцию-обертку, которая запустит последовательно counterReducer и booleanReducer передав им ветви c и b хранилища и обновив эти же ветви в случае нового состояния.
+const reducers = combineReducers({
     storeMain: reducerMain,
     storeLog: persistedReducerAuth
 })
@@ -273,18 +260,12 @@ const reducers = combineReducers({ //создаем функцию-обертк�
 const store = createStore(reducers, applyMiddleware(thunk));
 const persistor = persistStore(store)
 
-
 store.subscribe(() => console.log(store.getState()))
 export default () => {
     return (
-        // <Provider store={combineReducers({store, reducerAuth})}>
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
-
                 <RootComponent/>
-                 {/*<Router>*/}
-                 {/*    <Route path="/meal" component={} />*/}
-                 {/*</Router>*/}
             </PersistGate>
          </Provider>
     )

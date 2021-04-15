@@ -46,9 +46,9 @@ body {
 }
 
 .form-login {
-  width: 40%;
-  margin-top: 150px;
-  margin-left: 150px;
+  width: 48%;
+  margin-top: 100px;
+  margin-left: 100px;
 
 }
 .button-log {
@@ -109,4 +109,19 @@ body {
 }
 .product-button {
   margin: 30px 0 30px 0;
+}
+.btn-reg {
+  margin: 30px 0 50px 0;
+}
+.calendar {
+  width: 40%;
+  color: white;
+  margin: 30px;
+}
+.history-log-out {
+  display: flex;
+  justify-content: space-between;
+}
+.meal {
+  color: white;
 }
