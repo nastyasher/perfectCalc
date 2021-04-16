@@ -11,6 +11,7 @@ const cors = require('cors')
 const jwt = require('jsonwebtoken');
 const jwt_decode = require('jwt-decode')
 
+app.use(express.static(__dirname + '/myproject/build'))
 app.use(express.static('public'))
 app.use(cors())
 app.use(bodyParser.json())

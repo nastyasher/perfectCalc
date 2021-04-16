@@ -9,7 +9,7 @@ export const actionLogOut = () => ({type: 'LOG_OUT'})
 export const actionValidationError = (errors) => ({type: 'VALIDATION_ERROR', validationErrors: errors})
 
 async function postUser(user, endpoint) {
-    return await fetch(process.env.REACT_APP_BACK_END + '/' + endpoint, {
+    return await fetch('/' + endpoint, {
         method: 'POST',
         headers: {
             "Content-type": "application/json",

@@ -97,7 +97,7 @@ export const actionAddHistory = (token, date) => async (dispatch) => {
 }
 
 async function requestFind(text) {
-    const response = await fetch(process.env.REACT_APP_BACK_END + '/search?text=' + text, {
+    const response = await fetch('/search?text=' + text, {
         method: 'GET',
         headers: {
             "accept": "application/json"
@@ -107,7 +107,7 @@ async function requestFind(text) {
 }
 
 async function postNewProduct(newProduct) {
-    return await fetch(process.env.REACT_APP_BACK_END + '/product', {
+    return await fetch('/product', {
         method: 'POST',
         headers: {
             "Content-type": "application/json",
@@ -120,7 +120,7 @@ async function postNewProduct(newProduct) {
 }
 
 async function postNewMeal(newMeal, products, authToken) {
-    return await fetch(process.env.REACT_APP_BACK_END + '/meal', {
+    return await fetch('/meal', {
         method: 'POST',
         headers: {
             "Content-type": "application/json",
@@ -136,7 +136,7 @@ async function postNewMeal(newMeal, products, authToken) {
 }
 
 async function getMeals(token, date) {
-    return await fetch(process.env.REACT_APP_BACK_END + '/history?date='  + date.toISOString().slice(0, 10), {
+    return await fetch('/history?date='  + date.toISOString().slice(0, 10), {
         method: 'GET',
         headers: {
             "Content-type": "application/json",
