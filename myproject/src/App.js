@@ -2,8 +2,6 @@ import React, {useState} from 'react';
 import './App.css';
 import {BrowserRouter as Router, Route, Redirect, Link, withRouter} from 'react-router-dom';
 import {createBrowserHistory as createHistory} from 'history'
-import ReactDOM from 'react-dom';
-import Favicon from 'react-favicon';
 import {Provider, connect} from 'react-redux';
 import {createStore, combineReducers, applyMiddleware} from 'redux';
 import {
@@ -31,14 +29,6 @@ import { PersistGate } from 'redux-persist/integration/react'
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
  import {CHistory} from "./historyMeal/historyForm";
-
-ReactDOM.render(
-    <div>
-        <Favicon
-            url="https://i.pinimg.com/favicons/6a3eb788a704b4d0423eda950a0499b984267ffc59a139be61f259c4.ico?98272d68f7b3f2b795d84c431fd49077"/>
-    </div>
-
-    , document.getElementById('root'));
 
 const SearchProduct = withRouter (({actionAddProduct, actionSearch, products}) => {
     return (
@@ -94,7 +84,6 @@ const NewMeal = withRouter (({ history, actionSetMealTitleAndDate, title, action
                 <div className="dropdown-menu">
                     <DatePicker selected={date} onChange={date => {
                         setDate(date)
-                        console.log('http://localhost:4000/history'+ date.toISOString())
                         actionSetMealTitleAndDate({title:title, date:date})
                     }} />
                 </div>
@@ -118,10 +107,9 @@ const RowSearch = ({title, calories, proteins, fats, carbohydrates, onAdd}) =>
     </tr>
 
 const TableSearch = ({products, onAdd}) => {
-    console.log(products)
     return (<table className="text-white table-responsive-md table-dark table table-bordered table-striped table-hover">
         <thead>
-        <tr className="table-success">
+        <tr className="bg-success">
             <th scope="col">Название продукта</th>
             <th scope="col">Калории</th>
             <th scope="col">Белки</th>
@@ -158,10 +146,10 @@ const SumMeal = ({products}) => {
         <tfoot>
         <tr>
             <td>Всего</td>
-            <td>{sumCal}</td>
-            <td>{sumProt}</td>
-            <td>{sumFat}</td>
-            <td>{sumCarbo}</td>
+            <td>{(+sumCal).toFixed(2)}</td>
+            <td>{(+sumProt).toFixed(1)}</td>
+            <td>{(+sumFat).toFixed(1)}</td>
+            <td>{(+sumCarbo).toFixed(1)}</td>
             <td>{sumQuantity}</td>
             <td></td>
         </tr>
@@ -173,8 +161,8 @@ const TableMeal = withRouter (({onRemove, actionSetQuantity, history, actionAddN
         <div style={{display: products.length > 0 ? "" : "none", color:"white"}}> Дневник питания
             <table className="text-white table-responsive-md table-dark table table-bordered table-striped table-hover">
                 <thead>
-                <tr className="table-success">
-                    <th className="table-danger" scope="col">Название продукта</th>
+                <tr className="bg-success">
+                    <th  scope="col">Название продукта</th>
                     <th type="number" scope="col">Калории</th>
                     <th scope="col">Белки</th>
                     <th scope="col">Жиры</th>
@@ -208,7 +196,6 @@ const RowMeal = ({title, id, calories, proteins, fats, carbohydrates, quantity, 
     </tr>
 
 const MealProducts = ({onRemove, products, actionAddNewMeal, actionSetQuantity, newMeal, authToken}) => {
-
     return (
         <div>
 
@@ -224,7 +211,7 @@ const CMealProducts = connect(
 )(MealProducts)
 
 const CNewMeal = connect(
-    state => ({newMeal: state.storeMain.newMeal, title: state.storeMain.newMeal.title, date: state.storeMain.newMeal.date, login: state.storeLog.user.username, authToken: state.storeLog.user.authToken}),
+    state => ({title: state.storeMain.newMeal.title, login: state.storeLog.user.username, authToken: state.storeLog.user.authToken}),
     {actionAddNewMeal, actionSetMealTitleAndDate, actionLogOut, actionAddHistory}
 )(NewMeal)
 

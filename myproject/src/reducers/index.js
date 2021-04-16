@@ -22,7 +22,7 @@ export const reducerMain = (state = {
         return {...state, newMeal: newMeal}
     }
     if (type === 'CREAT_PRODUCT') {
-        return {...state, newMeal: newMeal, mealProducts: products, authToken: authToken}
+        return {...state}
     }
     if (type === 'CREAT_PRODUCT_ERROR') {
         return {...state, error}

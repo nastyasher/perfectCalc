@@ -263,25 +263,25 @@ Product.init({
     proteins: { type: DataTypes.DECIMAL(5, 2), allowNull:false,
         validate: {
             notNull: {args: true, msg: "Вы должны ввести количество белка"},
-            len: {args: [1, 3], msg: "Введите корректное значение белков"},
+            len: {args: [1, 5], msg: "Введите корректное значение белков"},
         }
     },
     fats: {type: DataTypes.DECIMAL(5, 2), allowNull:false,
         validate: {
             notNull: {args: true, msg: "Вы должны ввести количество жиров"},
-            len: {args: [1, 3], msg: "Введите корректное значение жиров"},
+            len: {args: [1, 5], msg: "Введите корректное значение жиров"},
         }
     },
     carbohydrates: { type: DataTypes.DECIMAL(5, 2), allowNull:false,
         validate: {
             notNull: {args: true, msg: "Вы должны ввести количество углеводов"},
-            len: {args: [1, 3], msg: "Введите корректное значение углеводов"},
+            len: {args: [1, 5], msg: "Введите корректное значение углеводов"},
         }
     },
     calories: { type: DataTypes.DECIMAL(5, 2), allowNull:false,
         validate: {
             notNull: {args: true, msg: "Вы должны ввести количество калорий"},
-            len: {args: [1, 3], msg: "Введите корректное значение калорий"},
+            len: {args: [1, 6], msg: "Введите корректное значение калорий"},
         }
     },
     createdAt: Sequelize.DATE,

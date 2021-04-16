@@ -24,11 +24,13 @@ export const actionSearch = (searchText) => async (dispatch) => {
     }
 }
 
-export const actionAddNewProduct = (newProduct) => async (dispatch) => {
+export const actionAddNewProduct = (newProduct, history) => async (dispatch) => {
     try {
         const res = await postNewProduct(newProduct)
         if (res.status === 200) {
             dispatch(actionCreatProduct(newProduct))
+            alert("Ваш продукт сохранен")
+            history.push("./meal")
         }
         else if (res.status === 422) {
             dispatch(actionValidationError(await res.json()))
@@ -95,7 +97,7 @@ export const actionAddHistory = (token, date) => async (dispatch) => {
 }
 
 async function requestFind(text) {
-    const response = await fetch('http://localhost:4000/search?text=' + text, {
+    const response = await fetch(process.env.REACT_APP_BACK_END + '/search?text=' + text, {
         method: 'GET',
         headers: {
             "accept": "application/json"
@@ -105,7 +107,7 @@ async function requestFind(text) {
 }
 
 async function postNewProduct(newProduct) {
-    const response = await fetch('http://localhost:4000/product', {
+    return await fetch(process.env.REACT_APP_BACK_END + '/product', {
         method: 'POST',
         headers: {
             "Content-type": "application/json",
@@ -114,12 +116,11 @@ async function postNewProduct(newProduct) {
         body: JSON.stringify({
             newProduct: newProduct
         })
-    })
-    return response;
+    });
 }
 
 async function postNewMeal(newMeal, products, authToken) {
-    const response = await fetch('http://localhost:4000/meal', {
+    return await fetch(process.env.REACT_APP_BACK_END + '/meal', {
         method: 'POST',
         headers: {
             "Content-type": "application/json",
@@ -131,13 +132,11 @@ async function postNewMeal(newMeal, products, authToken) {
             products: products,
             token: authToken
         })
-    })
-    return response;
+    });
 }
 
 async function getMeals(token, date) {
-    console.log(date)
-    return await fetch('http://localhost:4000/history?date='  + date.toISOString().slice(0, 10), {
+    return await fetch(process.env.REACT_APP_BACK_END + '/history?date='  + date.toISOString().slice(0, 10), {
         method: 'GET',
         headers: {
             "Content-type": "application/json",
